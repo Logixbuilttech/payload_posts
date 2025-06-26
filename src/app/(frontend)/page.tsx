@@ -1,59 +1,91 @@
-import { headers as getHeaders } from 'next/headers.js'
-import Image from 'next/image'
-import { getPayload } from 'payload'
-import React from 'react'
-import { fileURLToPath } from 'url'
+export const revalidate = 60
 
+import { getPayload } from 'payload'
 import config from '@/payload.config'
+import Image from 'next/image'
+import Link from 'next/link'
+import type { Post, Media, User } from '@/payload-types'
 import './styles.css'
 
 export default async function HomePage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
+  const payload = await getPayload({ config })
+  const { docs: posts } = (await payload.find({
+    collection: 'posts',
+    sort: '-publishedDate',
+    limit: 20,
+    depth: 2,
+  })) as { docs: Post[] }
 
-  const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
+  if (!posts.length) {
+    return (
+      <div className="home">
+        <h1>No posts found.</h1>
+      </div>
+    )
+  }
+
+  const [hero, ...rest] = posts
 
   return (
-    <div className="home">
-      <div className="content">
-        <picture>
-          <source srcSet="https://raw.githubusercontent.com/payloadcms/payload/main/packages/ui/src/assets/payload-favicon.svg" />
-          <Image
-            alt="Payload Logo"
-            height={65}
-            src="https://raw.githubusercontent.com/payloadcms/payload/main/packages/ui/src/assets/payload-favicon.svg"
-            width={65}
-          />
-        </picture>
-        {!user && <h1>Welcome to your new project.</h1>}
-        {user && <h1>Welcome back, {user.email}</h1>}
-        <div className="links">
-          <a
-            className="admin"
-            href={payloadConfig.routes.admin}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Go to admin panel
-          </a>
-          <a
-            className="docs"
-            href="https://payloadcms.com/docs"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Documentation
-          </a>
-        </div>
-      </div>
-      <div className="footer">
-        <p>Update this page by editing</p>
-        <a className="codeLink" href={fileURL}>
-          <code>app/(frontend)/page.tsx</code>
-        </a>
-      </div>
-    </div>
+    <main className="homepage">
+      {/* Hero Post */}
+      <section className="hero-post">
+        <Link href={`/posts/${hero.slug}`} prefetch className="hero-link">
+          {hero.coverImage && typeof hero.coverImage === 'object' && (
+            <Image
+              src={(hero.coverImage as Media).url || ''}
+              alt={(hero.coverImage as Media).alt || hero.title}
+              width={960}
+              height={480}
+              priority
+              className="hero-image"
+              style={{ objectFit: 'cover', borderRadius: '1rem' }}
+            />
+          )}
+          <div className="hero-content">
+            <h1>{hero.title}</h1>
+            {hero.excerpt && <p className="hero-excerpt">{hero.excerpt}</p>}
+            <div className="hero-meta">
+              <time dateTime={hero.publishedDate}>
+                {new Date(hero.publishedDate).toLocaleDateString()}
+              </time>
+              {hero.author && typeof hero.author === 'object' && (
+                <span className="hero-author">By {(hero.author as User).email}</span>
+              )}
+            </div>
+          </div>
+        </Link>
+      </section>
+
+      {/* Grid of Other Posts */}
+      <section className="posts-grid">
+        {rest.map((post) => (
+          <Link key={post.id} href={`/posts/${post.slug}`} prefetch className="post-card">
+            {post.coverImage && typeof post.coverImage === 'object' && (
+              <Image
+                src={(post.coverImage as Media).url || ''}
+                alt={(post.coverImage as Media).alt || post.title}
+                width={400}
+                height={225}
+                className="post-image"
+                style={{ objectFit: 'cover', borderRadius: '0.5rem' }}
+              />
+            )}
+            <div className="post-content">
+              <h2>{post.title}</h2>
+              {post.excerpt && <p className="post-excerpt">{post.excerpt}</p>}
+              <div className="post-meta">
+                <time dateTime={post.publishedDate}>
+                  {new Date(post.publishedDate).toLocaleDateString()}
+                </time>
+                {post.author && typeof post.author === 'object' && (
+                  <span className="post-author">By {(post.author as User).email}</span>
+                )}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </section>
+    </main>
   )
 }

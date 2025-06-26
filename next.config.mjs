@@ -7,5 +7,5 @@ const nextConfig = {
     reactCompiler: false,
   },
 }
-
+  
 export default withPayload(nextConfig, { devBundleServerPackages: false })
