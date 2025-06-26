@@ -1,5 +1,6 @@
 import React from 'react'
 import './styles.css'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata = {
   description: 'A blank template using Payload in a Next.js app.',
@@ -12,6 +13,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <SpeedInsights/>
         <main>{children}</main>
       </body>
     </html>
