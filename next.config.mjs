@@ -10,7 +10,6 @@ const nextConfig = {
         hostname: '**', // Allow any domain
       },
     ],
-    unoptimized: true, // Disable optimization
   },
   experimental: {
     reactCompiler: false,
