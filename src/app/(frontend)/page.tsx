@@ -38,6 +38,8 @@ export default async function HomePage() {
               width={960}
               height={480}
               priority
+              fetchPriority="high"
+              sizes="(max-width: 600px) 100vw, 960px"
               className="hero-image"
               style={{ objectFit: 'cover', borderRadius: '1rem' }}
             />
@@ -67,6 +69,7 @@ export default async function HomePage() {
                 alt={(post.coverImage as Media).alt || post.title}
                 width={400}
                 height={225}
+                sizes="(max-width: 600px) 100vw, 400px"
                 className="post-image"
                 style={{ objectFit: 'cover', borderRadius: '0.5rem' }}
               />
